@@ -3,25 +3,19 @@ services:
   - type: web
     name: catecos-nursing-web
     runtime: static
-    buildCommand: |
+    buildCommand: >
       npm install -g pnpm &&
       pnpm install --frozen-lockfile --ignore-scripts &&
-      pnpm --filter @workspace/db run build 2>/dev/null || true &&
-      pnpm --filter @workspace/api-zod run build 2>/dev/null || true &&
-      pnpm --filter @workspace/api-client-react run build 2>/dev/null || true &&
-      NODE_ENV=production BASE_PATH=/ PORT=3000 pnpm --filter @workspace/catecos-nursing run build
+      (pnpm --filter @workspace/db run build || true) &&
+      (pnpm --filter @workspace/api-zod run build || true) &&
+      (pnpm --filter @workspace/api-client-react run build || true) &&
+      NODE_ENV=production PORT=3000 BASE_PATH=/ pnpm --filter @workspace/catecos-nursing run build
     staticPublishPath: artifacts/catecos-nursing/dist/public
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
     envVars:
-      - key: NODE_ENV
-        value: production
-      - key: BASE_PATH
-        value: /
-      - key: PORT
-        value: 3000
       - key: VITE_CLERK_PUBLISHABLE_KEY
         sync: false
 
@@ -30,11 +24,11 @@ services:
     name: catecos-nursing-api
     runtime: node
     plan: free
-    buildCommand: |
+    buildCommand: >
       npm install -g pnpm &&
       pnpm install --frozen-lockfile --ignore-scripts &&
-      pnpm --filter @workspace/db run build 2>/dev/null || true &&
-      pnpm --filter @workspace/api-zod run build 2>/dev/null || true &&
+      (pnpm --filter @workspace/db run build || true) &&
+      (pnpm --filter @workspace/api-zod run build || true) &&
       pnpm --filter @workspace/api-server run build
     startCommand: cd artifacts/api-server && node --enable-source-maps ./dist/index.mjs
     envVars:
